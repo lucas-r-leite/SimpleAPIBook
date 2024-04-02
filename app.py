@@ -15,8 +15,8 @@ books = [
     },
     {
         'id': 3,
-        'title': 'James Clear',
-        'author': 'Hábitos Atômicos'
+        'title': 'Nárnia',
+        'author': 'C. W. Lewis'
     },
 ]
 
