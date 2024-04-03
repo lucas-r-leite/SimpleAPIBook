@@ -1,12 +1,16 @@
-from flask import Flask, jsonify, request, render_template, url_for, redirect
+from flask import Flask, request, render_template, url_for, redirect
 import sqlalchemy
+from dotenv import load_dotenv
+import os
 from sqlalchemy.ext.declarative import declarative_base
+
+load_dotenv()
 
 app = Flask(__name__)
 
 # Define the MariaDB engine using MariaDB Connector/Python
 engine = sqlalchemy.create_engine(
-    "mariadb+mariadbconnector://user:password@localhost:3306/APILivros")
+    f"mariadb+mariadbconnector://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@localhost:3306/{os.getenv('DB_NAME')}")
 
 Base = declarative_base()
 
