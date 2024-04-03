@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, jsonify, request
 import sqlalchemy
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -21,7 +21,6 @@ class Books(Base):
 Base.metadata.create_all(engine)
 
 
-# Create a session
 Session = sqlalchemy.orm.sessionmaker()
 Session.configure(bind=engine)
 session = Session()
@@ -30,57 +29,67 @@ session = Session()
 @app.route('/books', methods=['GET'])
 def getBooks():
     books = session.query(Books).all()
+    bookList = []
     for book in books:
-        print(" - " + book.title + ' ' + book.author)
+        bookList.append("Title: " + book.title + ' Author: ' + book.author)
+
+    return jsonify(bookList)
 
 
 @app.route('/books/<int:id>', methods=['GET'])
 def getBooksById(id):
-    books = session.query(Books).filter_by(id=id)
-    for book in books:
-        print(" - " + book.title + ' ' + book.author)
+    book = session.query(Books).filter_by(id=id).first()
+    if book is None:
+        return "Book not found", 404
+
+    book_details = {"Title": book.title, "Author": book.author}
+    return jsonify(book_details)
 
 
 @app.route('/books/<int:id>', methods=['PUT'])
-def updateBookById(id, title, author):
+def updateBookById(id):
     book = session.query(Books).get(id)
+
     if book is None:
-        # Return a 404 Not Found status if the book doesn't exist
         return "Book not found", 404
-    else:
-        book.title = title
-        book.author = author
+
+    data = request.json  # Assuming JSON data is sent in the request body
+    if 'title' in data:
+        book.title = data['title']
+    if 'author' in data:
+        book.author = data['author']
 
     session.commit()
 
+    return "Book updated successfully", 200
+
 
 @app.route('/books/add', methods=['POST'])
-def addNewBook(title, author):
+def addNewBook():
+    data = request.json
+    title = data.get('title')
+    author = data.get('author')
+
+    if not title or not author:
+        return "Title and author are required", 400
+
     newBook = Books(title=title, author=author)
     session.add(newBook)
     session.commit()
 
+    return "Book added successfully", 201
+
 
 @app.route('/books/delete/<int:id>', methods=['DELETE'])
 def deleteBookById(id):
-    session.query(Books).filter(Books.id == id).delete()
+    book = session.query(Books).filter_by(id=id).first()
+    if book is None:
+        return "Book not found", 404
+
+    session.delete(book)
     session.commit()
 
+    return "Book deleted successfully", 200
 
-# add new book
-# addNewBook("Narnia", "C. S. Lewis")
-print("----------------")
-
-# add new book
-# updateBookById(3, "Nárnia", "C. S. Lewis")
-# print("----------------")
-
-
-# Show all books
-print('All books')
-getBooks()
-print("----------------")
-
-# deleteBookById(1)
 
 app.run()
