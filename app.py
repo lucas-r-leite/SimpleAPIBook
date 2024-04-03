@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, render_template, url_for, redirect
 import sqlalchemy
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -33,7 +33,7 @@ def getBooks():
     for book in books:
         bookList.append("Title: " + book.title + ' Author: ' + book.author)
 
-    return jsonify(bookList)
+    return render_template('books.html', books=books)
 
 
 @app.route('/books/<int:id>', methods=['GET'])
@@ -42,54 +42,65 @@ def getBooksById(id):
     if book is None:
         return "Book not found", 404
 
-    book_details = {"Title": book.title, "Author": book.author}
-    return jsonify(book_details)
+    return render_template('bookDetails.html', book=book)
 
 
-@app.route('/books/<int:id>', methods=['PUT'])
+@app.route('/books/update/<int:id>', methods=['GET', 'POST'])
 def updateBookById(id):
     book = session.query(Books).get(id)
 
     if book is None:
         return "Book not found", 404
 
-    data = request.json  # Assuming JSON data is sent in the request body
-    if 'title' in data:
-        book.title = data['title']
-    if 'author' in data:
-        book.author = data['author']
+    if request.method == 'POST':
+        title = request.form.get('title')
+        author = request.form.get('author')
 
-    session.commit()
+        if not title or not author:
+            return "Title and author are required", 400
 
-    return "Book updated successfully", 200
+        book.title = title
+        book.author = author
+
+        session.commit()
+
+        return redirect(url_for('getBooksById', id=id))
+
+    return render_template('updateBook.html', book=book)
 
 
-@app.route('/books/add', methods=['POST'])
+@app.route('/books/add', methods=['GET', 'POST'])
 def addNewBook():
-    data = request.json
-    title = data.get('title')
-    author = data.get('author')
+    if request.method == 'POST':
+        title = request.form.get('title')
+        author = request.form.get('author')
 
-    if not title or not author:
-        return "Title and author are required", 400
+        if not title or not author:
+            return "Title and author are required", 400
 
-    newBook = Books(title=title, author=author)
-    session.add(newBook)
-    session.commit()
+        newBook = Books(title=title, author=author)
+        session.add(newBook)
+        session.commit()
 
-    return "Book added successfully", 201
+        return redirect(url_for('getBooks'))
+
+    return render_template('addBook.html')
 
 
-@app.route('/books/delete/<int:id>', methods=['DELETE'])
+@app.route('/books/delete/<int:id>', methods=['GET', 'POST'])
 def deleteBookById(id):
     book = session.query(Books).filter_by(id=id).first()
     if book is None:
         return "Book not found", 404
 
-    session.delete(book)
-    session.commit()
+    if request.method == 'POST':
+        session.delete(book)
+        session.commit()
+        # Redirect to the book list page after deletion
+        return redirect(url_for('getBooks'))
 
-    return "Book deleted successfully", 200
+    # Render the delete confirmation page
+    return render_template('deleteBook.html', book=book)
 
 
 app.run()
