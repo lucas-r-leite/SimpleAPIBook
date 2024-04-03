@@ -6,7 +6,7 @@ app = Flask(__name__)
 
 # Define the MariaDB engine using MariaDB Connector/Python
 engine = sqlalchemy.create_engine(
-    "mariadb+mariadbconnector://root:ovLcA5^p8@localhost:3306/APILivros")
+    "mariadb+mariadbconnector://user:password@localhost:3306/APILivros")
 
 Base = declarative_base()
 
