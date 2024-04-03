@@ -1,62 +1,75 @@
-from flask import Flask, jsonify, request
+from flask import Flask
+import sqlalchemy
+from sqlalchemy.ext.declarative import declarative_base
 
 app = Flask(__name__)
 
-books = [
-    {
-        'id': 1,
-        'title': 'The Lord of Rings',
-        'author': 'J.R.R Tolkien'
-    },
-    {
-        'id': 2,
-        'title': 'Harry Potter',
-        'author': 'J.K. Howling'
-    },
-    {
-        'id': 3,
-        'title': 'Nárnia',
-        'author': 'C. W. Lewis'
-    },
-]
+# Define the MariaDB engine using MariaDB Connector/Python
+engine = sqlalchemy.create_engine(
+    "mariadb+mariadbconnector://root:ovLcA5^p8@localhost:3306/APILivros")
+
+Base = declarative_base()
+
+
+class Books(Base):
+    __tablename__ = 'books'
+    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
+    title = sqlalchemy.Column(sqlalchemy.String(length=100))
+    author = sqlalchemy.Column(sqlalchemy.String(length=50))
+
+
+Base.metadata.create_all(engine)
+
+
+# Create a session
+Session = sqlalchemy.orm.sessionmaker()
+Session.configure(bind=engine)
+session = Session()
 
 
 @app.route('/books', methods=['GET'])
 def getBooks():
-    return jsonify(books)
+    books = session.query(Books).all()
+    for book in books:
+        print(" - " + book.title + ' ' + book.author)
 
 
 @app.route('/books/<int:id>', methods=['GET'])
 def getBooksById(id):
+    books = session.query(Books).filter_by(id=id)
     for book in books:
-        if book.get('id') == id:
-            return jsonify(book)
+        print(" - " + book.title + ' ' + book.author)
 
 
 @app.route('/books/<int:id>', methods=['PUT'])
 def updateBookById(id):
-    updatedBook = request.get_json()
-    for index, book in enumerate(books):
-        if book.get('id') == id:
-            books[index].update(updatedBook)
-            return jsonify(books[index])
+    book = session.query(Books).get(id)
+    session.commit()
 
 
 @app.route('/books/add', methods=['POST'])
-def addNewBook():
-    newBook = request.get_json()
-    books.append(newBook)
-
-    return jsonify(books)
+def addNewBook(title, author):
+    newBook = Books(title=title, author=author)
+    session.add(newBook)
+    session.commit()
 
 
 @app.route('/books/delete/<int:id>', methods=['DELETE'])
 def deleteBookById(id):
-    for index, book in enumerate(books):
-        if book.get('id') == id:
-            del books[index]
+    session.query(Books).filter(Books.id == id).delete()
+    session.commit()
 
-            return jsonify(books)
 
+# add new book
+addNewBook("Nárnia", "C. S. Lewis")
+print("----------------")
+
+
+# Show all books
+print('All books')
+getBooks()
+print("----------------")
+
+deleteBookById(1)
 
 app.run(debug=True)
