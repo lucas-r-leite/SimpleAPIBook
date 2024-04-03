@@ -42,8 +42,15 @@ def getBooksById(id):
 
 
 @app.route('/books/<int:id>', methods=['PUT'])
-def updateBookById(id):
+def updateBookById(id, title, author):
     book = session.query(Books).get(id)
+    if book is None:
+        # Return a 404 Not Found status if the book doesn't exist
+        return "Book not found", 404
+    else:
+        book.title = title
+        book.author = author
+
     session.commit()
 
 
@@ -61,8 +68,12 @@ def deleteBookById(id):
 
 
 # add new book
-addNewBook("Nárnia", "C. S. Lewis")
+# addNewBook("Narnia", "C. S. Lewis")
 print("----------------")
+
+# add new book
+# updateBookById(3, "Nárnia", "C. S. Lewis")
+# print("----------------")
 
 
 # Show all books
@@ -70,6 +81,6 @@ print('All books')
 getBooks()
 print("----------------")
 
-deleteBookById(1)
+# deleteBookById(1)
 
-app.run(debug=True)
+app.run()
