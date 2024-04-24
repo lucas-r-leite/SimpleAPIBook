@@ -20,14 +20,14 @@
         <table class="table">
           <tr>
             <th>Title:</th>
-            <td>{{ book.title }}</td>
+            <td>{{ book[1] }}</td>
           </tr>
           <tr>
             <th>Author:</th>
-            <td>{{ book.author }}</td>
+            <td>{{ book[2] }}</td>
           </tr>
         </table>
-        <form method="POST" action="/books/delete/{{ book.id }}">
+        <form method="POST" action="/books/delete/{{ book[0] }}">
           <button type="submit" class="btn btn-danger">Delete</button>
           <a href="/books" class="btn btn-primary">Cancel</a>
         </form>

@@ -1,34 +1,51 @@
 from flask import Flask, request, render_template, url_for, redirect
-import sqlalchemy
+import sys
+import mariadb
 from dotenv import load_dotenv
 import os
-from sqlalchemy.ext.declarative import declarative_base
 
 load_dotenv()
 
 app = Flask(__name__)
 
-# Define the MariaDB engine using MariaDB Connector/Python
-engine = sqlalchemy.create_engine(
-    f"mariadb+mariadbconnector://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@localhost:3306/{os.getenv('DB_NAME')}"
+# Database configuration
+DATABASE_HOST = "0.0.0.0"  # Replace with the IP of your MariaDB container
+DATABASE_USER = os.getenv("DB_USER")
+DATABASE_PASSWORD = os.getenv("DB_PASSWORD")
+DATABASE_DB = os.getenv("DB_NAME")
+
+
+# Connect to MariaDB
+try:
+    conn = mariadb.connect(
+        user=DATABASE_USER,
+        password=DATABASE_PASSWORD,
+        host=DATABASE_HOST,
+        port=3306,  # MariaDB default port
+        database=DATABASE_DB,
+    )
+    cursor = conn.cursor()
+except mariadb.Error as e:
+    print(f"Error connecting to MariaDB: {e}")
+    sys.exit(1)
+
+# Define the Books table creation SQL query
+CREATE_TABLE_QUERY = """
+CREATE TABLE IF NOT EXISTS books (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(100),
+    author VARCHAR(50)
 )
+"""
 
-Base = declarative_base()
-
-
-class Books(Base):
-    __tablename__ = "books"
-    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
-    title = sqlalchemy.Column(sqlalchemy.String(length=100))
-    author = sqlalchemy.Column(sqlalchemy.String(length=50))
-
-
-Base.metadata.create_all(engine)
-
-
-Session = sqlalchemy.orm.sessionmaker()
-Session.configure(bind=engine)
-session = Session()
+# Execute the table creation query
+try:
+    cursor.execute(CREATE_TABLE_QUERY)
+    conn.commit()
+    print("Books table created successfully.")
+except mariadb.Error as e:
+    print(f"Error creating Books table: {e}")
+    conn.rollback()
 
 
 @app.route("/")
@@ -38,45 +55,54 @@ def home():
 
 @app.route("/books", methods=["GET"])
 def getBooks():
-    books = session.query(Books).all()
-    bookList = []
-    for book in books:
-        bookList.append("Title: " + book.title + " Author: " + book.author)
-
-    return render_template("books.html", books=books)
+    try:
+        cursor.execute("SELECT * FROM books")
+        books = cursor.fetchall()
+        return render_template("books.html", books=books)
+    except mariadb.Error as e:
+        print(f"Error fetching books: {e}")
+        return "Error fetching books", 500
 
 
 @app.route("/books/<int:id>", methods=["GET"])
 def getBooksById(id):
-    book = session.query(Books).filter_by(id=id).first()
-    if book is None:
-        return "Book not found", 404
-
-    return render_template("bookDetails.html", book=book)
+    try:
+        cursor.execute("SELECT * FROM books WHERE id=?", (id,))
+        book = cursor.fetchone()
+        if not book:
+            return "Book not found", 404
+        return render_template("bookDetails.html", book=book)
+    except mariadb.Error as e:
+        print(f"Error retrieving book: {e}")
+        return "Error retrieving book", 500
 
 
 @app.route("/books/update/<int:id>", methods=["GET", "POST"])
 def updateBookById(id):
-    book = session.query(Books).get(id)
+    try:
+        cursor.execute("SELECT * FROM books WHERE id=?", (id,))
+        book = cursor.fetchone()
+        if not book:
+            return "Book not found", 404
 
-    if book is None:
-        return "Book not found", 404
+        if request.method == "POST":
+            title = request.form.get("title")
+            author = request.form.get("author")
 
-    if request.method == "POST":
-        title = request.form.get("title")
-        author = request.form.get("author")
+            if not title or not author:
+                return "Title and author are required", 400
 
-        if not title or not author:
-            return "Title and author are required", 400
+            cursor.execute(
+                "UPDATE books SET title=?, author=? WHERE id=?", (title, author, id)
+            )
+            conn.commit()
 
-        book.title = title
-        book.author = author
+            return redirect(url_for("getBooksById", id=id))
 
-        session.commit()
-
-        return redirect(url_for("getBooksById", id=id))
-
-    return render_template("updateBook.html", book=book)
+        return render_template("updateBook.html", book=book)
+    except mariadb.Error as e:
+        print(f"Error updating book: {e}")
+        return "Error updating book", 500
 
 
 @app.route("/books/add", methods=["GET", "POST"])
@@ -88,29 +114,37 @@ def addNewBook():
         if not title or not author:
             return "Title and author are required", 400
 
-        newBook = Books(title=title, author=author)
-        session.add(newBook)
-        session.commit()
-
-        return redirect(url_for("getBooks"))
+        try:
+            cursor.execute(
+                "INSERT INTO books (title, author) VALUES (?, ?)", (title, author)
+            )
+            conn.commit()
+            return redirect(url_for("getBooks"))
+        except mariadb.Error as e:
+            print(f"Error adding new book: {e}")
+            return "Error adding new book", 500
 
     return render_template("addBook.html")
 
 
 @app.route("/books/delete/<int:id>", methods=["GET", "POST"])
 def deleteBookById(id):
-    book = session.query(Books).filter_by(id=id).first()
-    if book is None:
-        return "Book not found", 404
+    try:
+        cursor.execute("SELECT * FROM books WHERE id=?", (id,))
+        book = cursor.fetchone()
+        if not book:
+            return "Book not found", 404
 
-    if request.method == "POST":
-        session.delete(book)
-        session.commit()
-        # Redirect to the book list page after deletion
-        return redirect(url_for("getBooks"))
+        if request.method == "POST":
+            cursor.execute("DELETE FROM books WHERE id=?", (id,))
+            conn.commit()
+            return redirect(url_for("getBooks"))
 
-    # Render the delete confirmation page
-    return render_template("deleteBook.html", book=book)
+        return render_template("deleteBook.html", book=book)
+    except mariadb.Error as e:
+        print(f"Error deleting book: {e}")
+        return "Error deleting book", 500
 
 
-app.run()
+if __name__ == "__main__":
+    app.run()

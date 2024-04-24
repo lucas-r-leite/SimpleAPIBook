@@ -33,12 +33,12 @@
           <tbody>
             {% for book in books %}
             <tr>
-              <td>{{ book.title }}</td>
-              <td>{{ book.author }}</td>
+              <td>{{ book[1] }}</td>
+              <td>{{ book[2] }}</td>
               <td>
-                <a href="/books/{{ book.id }}" class="btn btn-primary"><i class="fas fa-eye"></i></a>
-                <a href="/books/update/{{ book.id }}" class="btn btn-secondary"><i class="fas fa-edit"></i></a>
-                <a href="/books/delete/{{ book.id }}" class="btn btn-danger"><i class="fas fa-trash-alt"></i></a>
+                <a href="/books/{{ book[0] }}" class="btn btn-primary"><i class="fas fa-eye"></i></a>
+                <a href="/books/update/{{ book[0] }}" class="btn btn-secondary"><i class="fas fa-edit"></i></a>
+                <a href="/books/delete/{{ book[0] }}" class="btn btn-danger"><i class="fas fa-trash-alt"></i></a>
               </td>
             </tr>
             {% endfor %}

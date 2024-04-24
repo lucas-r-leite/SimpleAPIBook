@@ -18,14 +18,14 @@
         <table class="table">
           <tr>
             <th>Title:</th>
-            <td>{{ book.title }}</td>
+            <td>{{ book[1] }}</td>
           </tr>
           <tr>
             <th>Author:</th>
-            <td>{{ book.author }}</td>
+            <td>{{ book[1] }}</td>
           </tr>
         </table>
-        <a href="/books/update/{{ book.id }}" class="btn btn-primary mr-2">Edit Book</a>
+        <a href="/books/update/{{ book[0] }}" class="btn btn-primary mr-2">Edit Book</a>
         <a href="/books" class="btn btn-secondary">Back to Book List</a>
       </div>
     </div>
