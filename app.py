@@ -33,8 +33,8 @@ except mariadb.Error as e:
 CREATE_TABLE_QUERY = """
 CREATE TABLE IF NOT EXISTS books (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    title VARCHAR(100),
-    author VARCHAR(50)
+    title VARCHAR(50) NOT NULL,
+    author VARCHAR(30) NOT NULL
 )
 """
 
