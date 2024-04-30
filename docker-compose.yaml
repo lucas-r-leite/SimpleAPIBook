@@ -1,0 +1,23 @@
+version: '3.7'
+
+services:
+  mariadb:
+    image: mariadb
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: guH#3*SaRo 
+      MYSQL_DATABASE: APIBOOKS
+      MYSQL_USER: sammy
+      MYSQL_PASSWORD: guH#3*Sa
+    ports:
+      - "0.0.0.0:3306:3306"
+
+  flaskapp:
+    build: .
+    restart: always
+    network_mode: host
+    ports:
+      - "5000:5000"
+    depends_on:
+      - mariadb
+
