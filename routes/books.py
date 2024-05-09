@@ -1,52 +1,9 @@
 from flask import request, render_template, url_for, redirect, Blueprint
-import sys
 import mariadb
-from dotenv import load_dotenv
-import os
-
-load_dotenv()
+from db import conn, cursor
 
 
 book_route = Blueprint("book", __name__)
-
-# Database configuration
-DATABASE_HOST = "0.0.0.0"  # Replace with the IP of your MariaDB container
-DATABASE_USER = os.getenv("DB_USER")
-DATABASE_PASSWORD = os.getenv("DB_PASSWORD")
-DATABASE_DB = os.getenv("DB_NAME")
-
-
-# Connect to MariaDB
-try:
-    conn = mariadb.connect(
-        user=DATABASE_USER,
-        password=DATABASE_PASSWORD,
-        host=DATABASE_HOST,
-        port=3306,  # MariaDB default port
-        database=DATABASE_DB,
-    )
-    cursor = conn.cursor()
-except mariadb.Error as e:
-    print(f"Error connecting to MariaDB: {e}")
-    sys.exit(1)
-
-# Define the Books table creation SQL query
-CREATE_TABLE_QUERY = """
-CREATE TABLE IF NOT EXISTS books (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    title VARCHAR(50) NOT NULL,
-    author VARCHAR(30) NOT NULL
-)
-"""
-
-# Execute the table creation query
-try:
-    cursor.execute(CREATE_TABLE_QUERY)
-    conn.commit()
-    print("Books table created successfully.")
-except mariadb.Error as e:
-    print(f"Error creating Books table: {e}")
-    conn.rollback()
 
 
 @book_route.route("/", methods=["GET"])
@@ -94,7 +51,7 @@ def updateBookById(id):
             )
             conn.commit()
 
-            return redirect(url_for("getBooksById", id=id))
+            return redirect(url_for("book.getBooks"))
 
         return render_template("books/updateBook.html", book=book)
     except mariadb.Error as e:
@@ -116,7 +73,7 @@ def addNewBook():
                 "INSERT INTO books (title, author) VALUES (?, ?)", (title, author)
             )
             conn.commit()
-            return redirect(url_for("getBooks"))
+            return redirect(url_for("book.getBooks"))
         except mariadb.Error as e:
             print(f"Error adding new book: {e}")
             return "Error adding new book", 500
@@ -135,7 +92,7 @@ def deleteBookById(id):
         if request.method == "POST":
             cursor.execute("DELETE FROM books WHERE id=?", (id,))
             conn.commit()
-            return redirect(url_for("getBooks"))
+            return redirect(url_for("book.getBooks"))
 
         return render_template("books/deleteBook.html", book=book)
     except mariadb.Error as e:
