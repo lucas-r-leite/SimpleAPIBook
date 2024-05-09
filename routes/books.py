@@ -49,7 +49,7 @@ except mariadb.Error as e:
     conn.rollback()
 
 
-@book_route.route("/books", methods=["GET"])
+@book_route.route("/", methods=["GET"])
 def getBooks():
     try:
         cursor.execute("SELECT * FROM books")
@@ -60,7 +60,7 @@ def getBooks():
         return "Error fetching books", 500
 
 
-@book_route.route("/books/<int:id>", methods=["GET"])
+@book_route.route("/<int:id>", methods=["GET"])
 def getBooksById(id):
     try:
         cursor.execute("SELECT * FROM books WHERE id=?", (id,))
@@ -73,7 +73,7 @@ def getBooksById(id):
         return "Error retrieving book", 500
 
 
-@book_route.route("/books/update/<int:id>", methods=["GET", "POST"])
+@book_route.route("/update/<int:id>", methods=["GET", "POST"])
 def updateBookById(id):
     try:
         cursor.execute("SELECT * FROM books WHERE id=?", (id,))
@@ -102,7 +102,7 @@ def updateBookById(id):
         return "Error updating book", 500
 
 
-@book_route.route("/books/add", methods=["GET", "POST"])
+@book_route.route("/add", methods=["GET", "POST"])
 def addNewBook():
     if request.method == "POST":
         title = request.form.get("title")
@@ -124,7 +124,7 @@ def addNewBook():
     return render_template("books/addBook.html")
 
 
-@book_route.route("/books/delete/<int:id>", methods=["GET", "POST"])
+@book_route.route("/delete/<int:id>", methods=["GET", "POST"])
 def deleteBookById(id):
     try:
         cursor.execute("SELECT * FROM books WHERE id=?", (id,))
