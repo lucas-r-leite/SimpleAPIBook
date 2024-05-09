@@ -11,8 +11,6 @@ services:
       MYSQL_PASSWORD: guH#3*Sa
     ports:
       - "0.0.0.0:3306:3306"
-    volumes:
-      - apibooksdb:/var/lib/mysql
 
   flaskapp:
     build: .
@@ -22,6 +20,3 @@ services:
       - "5000:5000"
     depends_on:
       - mariadb
-
-Volumes:
-  apibooksdb:
