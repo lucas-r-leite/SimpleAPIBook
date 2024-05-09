@@ -49,11 +49,6 @@ except mariadb.Error as e:
     conn.rollback()
 
 
-@book_route.route("/")
-def home():
-    return render_template("index.html")
-
-
 @book_route.route("/books", methods=["GET"])
 def getBooks():
     try:
