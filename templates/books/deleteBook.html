@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+  <h1 class="mb-4">Delete Book</h1>
+  <div class="row">
+    <div class="col-md-6">
+      <p>Are you sure you want to delete the following book?</p>
+      <table class="table">
+        <tr>
+          <th>Title:</th>
+          <td>{{ book[1] }}</td>
+        </tr>
+        <tr>
+          <th>Author:</th>
+          <td>{{ book[2] }}</td>
+        </tr>
+      </table>
+      <form method="POST" action="/books/delete/{{ book[0] }}">
+        <button type="submit" class="btn btn-danger">Delete</button>
+        <a href="{{url_for('book.getBooks')}}" class="btn btn-primary">Cancel</a>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

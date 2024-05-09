@@ -5,12 +5,14 @@ services:
     image: mariadb
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: guH#3*SaRo 
+      MYSQL_ROOT_PASSWORD: guH#3*Ma
       MYSQL_DATABASE: APIBOOKS
       MYSQL_USER: sammy
       MYSQL_PASSWORD: guH#3*Sa
     ports:
       - "0.0.0.0:3306:3306"
+    volumes:
+      - apibooksdb:/var/lib/mysql
 
   flaskapp:
     build: .
@@ -21,3 +23,5 @@ services:
     depends_on:
       - mariadb
 
+Volumes:
+  apibooksdb:

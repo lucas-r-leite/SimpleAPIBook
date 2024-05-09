@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+  <h1 class="mb-4">Book List</h1>
+  <div class="row">
+    <div class="col-md-6 mb-3">
+      <a href="/books/add" class="btn btn-success btn-lg">Add New Book</a>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-12">
+      <table class="table">
+        <thead class="thead-dark">
+          <tr>
+            <th>Title</th>
+            <th>Author</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for book in books %}
+          <tr>
+            <td>{{ book[1] }}</td>
+            <td>{{ book[2] }}</td>
+            <td>
+              <a href="{{url_for('book.getBooksById', id=book[0])}}" class="btn btn-primary"><i class="fas fa-eye"></i></a>
+              <a href="{{url_for('book.updateBookById', id=book[0])}}" class="btn btn-secondary"><i
+                  class="fas fa-edit"></i></a>
+              <a href="{{url_for('book.deleteBookById', id=book[0])}}" class="btn btn-danger"><i
+                  class="fas fa-trash-alt"></i></a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
