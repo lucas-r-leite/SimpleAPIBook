@@ -1,6 +1,3 @@
 __pycachce__/
 venv/
 .env
-Dockerfile
-docker-compose.yml
-.dockerignore
