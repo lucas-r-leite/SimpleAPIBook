@@ -5,10 +5,10 @@ services:
     image: mariadb
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: guH#3*Ma
-      MYSQL_DATABASE: APIBOOKS
-      MYSQL_USER: sammy
-      MYSQL_PASSWORD: guH#3*Sa
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
     ports:
       - "0.0.0.0:3306:3306"
 
